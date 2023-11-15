@@ -1,10 +1,10 @@
 use coffee::graphics::Window;
 
 pub(crate) struct Board {
-    grid: [f32; 2],
+    pub(crate) grid: [f32; 2],
     pub(crate) size: [f32; 2],
     pub(crate) pos: [f32; 2],
-    token_size: f32,
+    pub(crate)  token_size: f32,
     pegs_all: i64,
     pegs_p1: i64,
     pegs_p2: i64
@@ -36,7 +36,7 @@ impl Board {
     }
 
      pub(crate) fn calculate_token_size(&mut self) {
-        self.token_size = (self.size[0] * 0.9) / self.grid[0];
+        self.token_size = (self.size[0] * 0.85) / self.grid[0];
      }
 
     pub(crate) fn update_board_size(&mut self, _window: &Window) {
