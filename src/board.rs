@@ -1,7 +1,7 @@
-use coffee::graphics::Window;
+use coffee::graphics::{Color, Mesh, Point, Shape, Window};
 
 pub(crate) struct Board {
-    pub(crate) grid: [f32; 2],
+    pub(crate) grid: [i32; 2],
     pub(crate) size: [f32; 2],
     pub(crate) pos: [f32; 2],
     pub(crate)  token_size: f32,
@@ -13,7 +13,7 @@ pub(crate) struct Board {
 impl Board {
     pub(crate) fn new() -> Board {
         Board {
-            grid: [8.0, 7.0],
+            grid: [8, 7],
             size: [0.0, 0.0],
             pos: [0.0, 0.0],
             token_size: 0.0,
@@ -24,7 +24,7 @@ impl Board {
     }
 
     pub(crate) fn calculate_board_size_and_position(&mut self, screen_size: [f32; 2]){
-        let board_scale = self.grid[0] / self.grid[1];
+        let board_scale = self.grid[0] as f32 / self.grid[1] as f32;
         let screen_scale = screen_size[0] / screen_size[1];
         if board_scale > screen_scale {
             self.size = [screen_size[0], screen_size[0] / board_scale];
@@ -36,11 +36,66 @@ impl Board {
     }
 
      pub(crate) fn calculate_token_size(&mut self) {
-        self.token_size = (self.size[0] * 0.85) / self.grid[0];
+        self.token_size = (self.size[0] * 0.85) / self.grid[0] as f32;
      }
 
     pub(crate) fn update_board_size(&mut self, _window: &Window) {
         self.calculate_board_size_and_position([_window.width(), _window.height()]);
         self.calculate_token_size();
+    }
+
+    // Change to render grid, probably chuck it in the board class
+    pub(crate) fn render_grid(&mut self, mesh: &mut Mesh) {
+        let spacing: [f32; 2] = [(self.size[0] / self.grid[0] as f32), (self.size[1] / self.grid[1] as f32)];
+        for y in 0..self.grid[1]{
+            for x in 0..self.grid[0]{
+                let bit_pos = x + (y * self.grid[0]);
+                let pos_mask = 1 << bit_pos;
+
+                let mut color: Color = Color::WHITE;
+
+                if self.pegs_all & pos_mask != 0{
+                    if self.pegs_p1 & pos_mask != 0 {
+                        color = Color::from_rgb(255,255,0);
+                    } else if self.pegs_p2 & pos_mask != 0{
+                        color = Color::from_rgb(255,0,0);
+                    } else {
+                        color = Color::from_rgb(100,100,100);
+                        println!("Something went very weird, there is a peg here but it doesnt belong to either player.");
+                    }
+                }
+                mesh.fill(
+                    Shape::Circle {
+                        center: Point::new((self.pos[0] + self.size[0]) - ((x as f32 * spacing[0]) + (spacing[0] / 2.0)) , (self.pos[1] + self.size[1]) - ((y as f32 * spacing[1]) + (spacing[1] / 2.0))),
+                        radius: self.token_size / 2.0,
+                    },
+                    color,
+                );
+            }
+        }
+    }
+
+    pub(crate) fn place_token(&mut self, x: i32, y: i32, player: i32) {
+        let binary_pos: i32 = x + (y * self.grid[0]);
+        let pos_mask: i64 = 1 << binary_pos;
+
+
+        // Check if there is a peg in that position on the board
+        if self.pegs_all & pos_mask != 0{
+            println!("Cant place token in pos: {}, {} as there is already a peg there", x, y);
+            return;
+        }
+
+        // Place peg in pegs_all
+        self.pegs_all |= pos_mask;
+
+
+        if player == 1 {
+            self.pegs_p1 |= pos_mask;
+        }
+        else if player == 2 {
+            self.pegs_p2 |= pos_mask;
+        }
+
     }
 }
