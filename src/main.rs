@@ -7,7 +7,7 @@ use coffee::{Game, Timer};
 
 fn main() {
     let _ = MyGame::run(WindowSettings {
-        title: String::from("ConnectFour"),
+        title: String::from("Connect Four"),
         size: (1280, 720),
         resizable: true,
         fullscreen: false,
