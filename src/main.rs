@@ -1,10 +1,13 @@
-use coffee::graphics::{Color, Frame, Window, WindowSettings, Mesh, Shape, Point, Rectangle};
+mod board;
+mod token;
+
+use coffee::graphics::{Color, Frame, Window, WindowSettings, Mesh, Shape, Rectangle};
 use coffee::load::Task;
-use coffee::{Game, Result, Timer};
+use coffee::{Game, Timer};
 
 fn main() {
-    MyGame::run(WindowSettings {
-        title: String::from("BotnetFour"),
+    let _ = MyGame::run(WindowSettings {
+        title: String::from("ConnectFour"),
         size: (1280, 720),
         resizable: true,
         fullscreen: false,
@@ -12,20 +15,8 @@ fn main() {
     });
 }
 
-fn calculate_board_size_and_position(board_size: [i32; 2], screen_size: [f32; 2]) -> [f32; 4] {
-    let board_scale = (board_size[0] / board_size[1]) as f32;
-    let screen_scale = screen_size[0] / screen_size[1];
-    if board_scale > screen_scale {
-        [screen_size[0], screen_size[0] / board_scale, 0.0, (screen_size[1] - (screen_size[0] / board_scale)) / 2.0]
-    } else {
-        [screen_size[1] * board_scale, screen_size[1], (screen_size[0] - (screen_size[1] * board_scale)) / 2.0, 0.0]
-    }
-
-}
-
 struct MyGame {
-    grid_size: [i32; 2],
-    game_size_and_pos: [f32; 4],
+    board: board::Board,
 }
 
 impl Game for MyGame {
@@ -34,7 +25,7 @@ impl Game for MyGame {
 
 
     fn load(_window: &Window) -> Task<MyGame> {
-        Task::succeed(|| MyGame { grid_size: [7,6], game_size_and_pos: [0.0, 0.0, 0.0, 0.0] })
+        Task::succeed(|| MyGame { board: board::Board::new() })
     }
 
     fn draw(&mut self, frame: &mut Frame, _timer: &Timer) {
@@ -43,18 +34,16 @@ impl Game for MyGame {
         let mut mesh = Mesh::new();
 
         mesh.fill(
-            Shape::Rectangle {
-                0: Rectangle {
-                    x: self.game_size_and_pos[2],
-                    y: self.game_size_and_pos[3],
-                    width: self.game_size_and_pos[0],
-                    height: self.game_size_and_pos[1],
-                },
-            },
+            Shape::Rectangle(Rectangle {
+                x: self.board.pos[0],
+                y: self.board.pos[1],
+                width: self.board.size[0],
+                height: self.board.size[1],
+            }),
             Color::WHITE,
         );
 
-        let mut x = 0;
+        /*let mut x = 0;
         while x < 10 {
             let mut y = 0;
             while y < 10 {
@@ -68,11 +57,12 @@ impl Game for MyGame {
                 y += 1;
             }
             x += 1;
-        }
+        }*/
         mesh.draw(&mut frame.as_target());
     }
 
-    // fn update(&mut self, _window: &Window) -> () {
-    //     self.game_size_and_pos = calculate_board_size_and_position(self.grid_size, [_window.width(), _window.height()]);
-    // }
+    fn update(&mut self, _window: &Window) -> () {
+        self.board.update_board_size(_window)
+        //println!("{:?}", self.game_size_and_pos)
+    }
 }
