@@ -4,7 +4,7 @@ pub(crate) struct Board {
     pub(crate) grid: [i32; 2],
     pub(crate) size: [f32; 2],
     pub(crate) pos: [f32; 2],
-    pub(crate)  token_size: f32,
+    pub(crate) token_size: f32,
     pegs_all: i64,
     pegs_p1: i64,
     pegs_p2: i64
@@ -78,7 +78,6 @@ impl Board {
     pub(crate) fn place_token(&mut self, x: i32, y: i32, player: i32) {
         let binary_pos: i32 = x + (y * self.grid[0]);
         let pos_mask: i64 = 1 << binary_pos;
-
 
         // Check if there is a peg in that position on the board
         if self.pegs_all & pos_mask != 0{
