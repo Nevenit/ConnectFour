@@ -60,8 +60,8 @@ impl Board {
             return None
         }
 
-        Some([(mouse_on_board.x / self.grid_cell_size).floor() as i32,
-            (mouse_on_board.y / self.grid_cell_size).floor() as i32])
+        Some([self.grid[0] - 1 - (mouse_on_board.x / self.grid_cell_size).floor() as i32,
+            self.grid[1] - 1 - (mouse_on_board.y / self.grid_cell_size).floor() as i32])
     }
 
     // Change to render grid, probably chuck it in the board class

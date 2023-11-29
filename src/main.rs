@@ -49,8 +49,8 @@ impl Game for MyGame {
         if selected_cell.is_some() {
             mesh.fill(
                 Shape::Rectangle(Rectangle {
-                    x: self.board.pos[0] + selected_cell.unwrap()[0] as f32 * self.board.grid_cell_size,
-                    y: self.board.pos[1] + selected_cell.unwrap()[1] as f32 * self.board.grid_cell_size,
+                    x: (self.board.pos[0] + self.board.size[0]) - (selected_cell.unwrap()[0] + 1) as f32 * self.board.grid_cell_size,
+                    y: (self.board.pos[1] + self.board.size[1]) - (selected_cell.unwrap()[1] + 1) as f32 * self.board.grid_cell_size,
                     width: self.board.grid_cell_size,
                     height: self.board.grid_cell_size,
                 }),
@@ -77,7 +77,16 @@ impl Game for MyGame {
         self.board.place_token(1,0,2);
 
         if self.input.mouse_buttons_pressed.contains(&mouse::Button::Left) {
-
+            let pressed_cell = self.board.get_selected_cell(self.input.mouse_position);
+            if pressed_cell.is_some() {
+                self.board.place_token(pressed_cell.unwrap()[0], pressed_cell.unwrap()[1], 1);
+            }
+        }
+        if self.input.mouse_buttons_pressed.contains(&mouse::Button::Right) {
+            let pressed_cell = self.board.get_selected_cell(self.input.mouse_position);
+            if pressed_cell.is_some() {
+                self.board.place_token(pressed_cell.unwrap()[0], pressed_cell.unwrap()[1], 2);
+            }
         }
 
     }
