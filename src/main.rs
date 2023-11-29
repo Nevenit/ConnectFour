@@ -76,5 +76,9 @@ impl Game for MyGame {
         self.board.place_token(0,0,2);
         self.board.place_token(1,0,2);
 
+        if self.input.mouse_buttons_pressed.contains(&mouse::Button::Left) {
+
+        }
+
     }
 }
