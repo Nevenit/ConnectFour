@@ -1,7 +1,7 @@
 mod board;
 mod input;
 
-use coffee::graphics::{Color, Frame, Window, WindowSettings, Mesh, Shape, Rectangle};
+use coffee::graphics::{Color, Frame, Window, WindowSettings, Mesh, Shape, Rectangle, Point};
 use coffee::load::Task;
 use coffee::{Game, Timer};
 use crate::input::CustomInput;
@@ -35,6 +35,7 @@ impl Game for MyGame {
         //self.game_size_and_pos = calculate_board_size_and_position(self.grid_size, [_window.width(), _window.height()]);
         frame.clear(Color::WHITE);
         let mut mesh = Mesh::new();
+        let selected_cell = self.board.get_selected_cell(self.input.mouse_position);
 
         mesh.fill(
             Shape::Rectangle(Rectangle {
@@ -45,15 +46,17 @@ impl Game for MyGame {
             }),
             Color::BLUE,
         );
-        mesh.fill(
-            Shape::Rectangle(Rectangle {
-                x: self.input.mouse_position.x,
-                y: self.input.mouse_position.y,
-                width: 50.0,
-                height: 50.0,
-            }),
-            Color::WHITE,
-        );
+        if selected_cell.is_some() {
+            mesh.fill(
+                Shape::Rectangle(Rectangle {
+                    x: self.board.pos[0] + selected_cell.unwrap()[0] as f32 * self.board.grid_cell_size,
+                    y: self.board.pos[1] + selected_cell.unwrap()[1] as f32 * self.board.grid_cell_size,
+                    width: self.board.grid_cell_size,
+                    height: self.board.grid_cell_size,
+                }),
+                Color::GREEN,
+            );
+        }
         self.board.render_grid(&mut mesh);
         mesh.draw(&mut frame.as_target());
     }

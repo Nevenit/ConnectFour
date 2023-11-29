@@ -58,6 +58,7 @@ impl Input for CustomInput {
             _ => {}
         }
     }
+
     fn clear (&mut self) {
         self.text_buffer.clear();
     }
