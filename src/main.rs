@@ -35,7 +35,7 @@ impl Game for MyGame {
         //self.game_size_and_pos = calculate_board_size_and_position(self.grid_size, [_window.width(), _window.height()]);
         frame.clear(Color::WHITE);
         let mut mesh = Mesh::new();
-        let selected_cell = self.board.get_selected_cell(self.input.mouse_position);
+        //let selected_cell = self.board.get_selected_cell(self.input.mouse_position);
 
         mesh.fill(
             Shape::Rectangle(Rectangle {
@@ -46,7 +46,7 @@ impl Game for MyGame {
             }),
             Color::BLUE,
         );
-        if selected_cell.is_some() {
+        /*if selected_cell.is_some() {
             mesh.fill(
                 Shape::Rectangle(Rectangle {
                     x: (self.board.pos[0] + self.board.size[0]) - (selected_cell.unwrap()[0] + 1) as f32 * self.board.grid_cell_size,
@@ -56,8 +56,8 @@ impl Game for MyGame {
                 }),
                 Color::GREEN,
             );
-        }
-        self.board.render_grid(&mut mesh);
+        }*/
+        self.board.render_grid(&mut mesh, &self.input.mouse_position);
         mesh.draw(&mut frame.as_target());
     }
 
@@ -67,6 +67,7 @@ impl Game for MyGame {
         self.input.mouse_wheel = input.mouse_wheel;
         self.input.keys_pressed = input.keys_pressed.clone();
         self.input.text_buffer = input.text_buffer.clone();
+        //self.input.update(input);
     }
 
     fn update(&mut self, _window: &Window) -> () {

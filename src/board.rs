@@ -65,14 +65,20 @@ impl Board {
     }
 
     // Change to render grid, probably chuck it in the board class
-    pub(crate) fn render_grid(&mut self, mesh: &mut Mesh) {
-        let spacing: [f32; 2] = [(self.size[0] / self.grid[0] as f32), (self.size[1] / self.grid[1] as f32)];
+    pub(crate) fn render_grid(&mut self, mesh: &mut Mesh, mouse_position: &Point) {
+        let spacing: [f32; 2] = [self.size[0] / self.grid[0] as f32, self.size[1] / self.grid[1] as f32];
+        let selected_cell = self.get_selected_cell(*mouse_position);
+
         for y in 0..self.grid[1]{
             for x in 0..self.grid[0]{
                 let bit_pos = x + (y * self.grid[0]);
                 let pos_mask = 1 << bit_pos;
 
-                let mut color: Color = Color::WHITE;
+                let mut color = Color::WHITE;
+
+                if selected_cell.is_some() && x == selected_cell.unwrap()[0] {
+                    color = Color::from_rgb(150,150,150);
+                }
 
                 if self.pegs_all & pos_mask != 0{
                     if self.pegs_p1 & pos_mask != 0 {
@@ -84,6 +90,7 @@ impl Board {
                         //println!("Something went very weird, there is a peg here but it doesnt belong to either player.");
                     }
                 }
+
                 mesh.fill(
                     Shape::Circle {
                         center: Point::new((self.pos[0] + self.size[0]) - ((x as f32 * spacing[0]) + (spacing[0] / 2.0)) , (self.pos[1] + self.size[1]) - ((y as f32 * spacing[1]) + (spacing[1] / 2.0))),
