@@ -72,21 +72,17 @@ impl Game for MyGame {
 
     fn update(&mut self, _window: &Window) -> () {
         self.board.update_board_size(_window);
-        //println!("{:?}", self.game_size_and_pos)
-        self.board.place_token(0,1,1);
-        self.board.place_token(0,0,2);
-        self.board.place_token(1,0,2);
 
         if self.input.mouse_buttons_pressed.contains(&mouse::Button::Left) {
             let pressed_cell = self.board.get_selected_cell(self.input.mouse_position);
             if pressed_cell.is_some() {
-                self.board.place_token(pressed_cell.unwrap()[0], pressed_cell.unwrap()[1], 1);
+                self.board.place_token(pressed_cell.unwrap()[0], 1);
             }
         }
         if self.input.mouse_buttons_pressed.contains(&mouse::Button::Right) {
             let pressed_cell = self.board.get_selected_cell(self.input.mouse_position);
             if pressed_cell.is_some() {
-                self.board.place_token(pressed_cell.unwrap()[0], pressed_cell.unwrap()[1], 2);
+                self.board.place_token(pressed_cell.unwrap()[0], 2);
             }
         }
 

@@ -102,26 +102,28 @@ impl Board {
         }
     }
 
-    pub(crate) fn place_token(&mut self, x: i32, y: i32, player: i32) {
-        let binary_pos: i32 = x + (y * self.grid[0]);
-        let pos_mask: i64 = 1 << binary_pos;
+    pub(crate) fn place_token(&mut self, column: i32, player: i32) -> Option<[i32; 2]> {
+        for row in 0 .. self.grid[1] {
+            let binary_pos = column + (row * self.grid[0]);
+            let pos_mask = 1 << binary_pos;
+            if self.pegs_all & pos_mask != 0 {
+                // There is already a peg in that location
+                continue;
+            }
 
-        // Check if there is a peg in that position on the board
-        if self.pegs_all & pos_mask != 0{
-            //println!("Cant place token in pos: {}, {} as there is already a peg there", x, y);
-            return;
+            // Place peg in pegs_all
+            self.pegs_all |= pos_mask;
+
+            if player == 1 {
+                self.pegs_p1 |= pos_mask;
+            }
+            else if player == 2 {
+                self.pegs_p2 |= pos_mask;
+            }
+
+            return Some([column, row]);
         }
-
-        // Place peg in pegs_all
-        self.pegs_all |= pos_mask;
-
-
-        if player == 1 {
-            self.pegs_p1 |= pos_mask;
-        }
-        else if player == 2 {
-            self.pegs_p2 |= pos_mask;
-        }
-
+        // Column is full
+        return None
     }
 }
