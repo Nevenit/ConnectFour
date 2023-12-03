@@ -1,10 +1,11 @@
 use std::collections::HashSet;
+use std::hash::Hash;
 use coffee::graphics::Point;
 use coffee::input;
 use coffee::input::{keyboard, mouse};
 use coffee::input::Input;
 
-pub(crate) struct CustomInput {
+pub(crate) struct BasicInput {
     pub(crate) mouse_position: Point,
     pub(crate) mouse_buttons_pressed: HashSet<mouse::Button>,
     pub(crate) mouse_wheel: Point,
@@ -12,9 +13,43 @@ pub(crate) struct CustomInput {
     pub(crate) text_buffer: String,
 }
 
-impl Input for CustomInput {
-    fn new() -> CustomInput {
+pub(crate) struct CustomInput {
+    pub(crate) input: BasicInput,
+    mouse_buttons_pressed_down: HashSet<mouse::Button>,
+    keys_pressed_down: HashSet<keyboard::KeyCode>
+}
+
+impl CustomInput {
+    pub(crate) fn new() -> CustomInput {
         CustomInput {
+            input: BasicInput {
+                mouse_position: Point::new(0.0,0.0),
+                mouse_buttons_pressed: HashSet::new(),
+                mouse_wheel: Point::new(0.0,0.0),
+                keys_pressed: HashSet::new(),
+                text_buffer: String::new(),
+            },
+            mouse_buttons_pressed_down: HashSet::new(),
+            keys_pressed_down: HashSet::new(),
+        }
+    }
+
+    pub(crate) fn mouse_click(&mut self, button: mouse::Button) -> bool {
+        if self.input.mouse_buttons_pressed.contains(&button) {
+            if self.mouse_buttons_pressed_down.contains(&button) {
+                return false;
+            }
+            self.mouse_buttons_pressed_down.insert(button);
+            return true;
+        }
+        self.mouse_buttons_pressed_down.remove(&button);
+        return false
+    }
+}
+
+impl Input for BasicInput {
+    fn new() -> BasicInput {
+        BasicInput {
             mouse_position: Point::new(0.0,0.0),
             mouse_buttons_pressed: HashSet::new(),
             mouse_wheel: Point::new(0.0,0.0),

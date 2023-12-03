@@ -4,7 +4,7 @@ mod input;
 use coffee::graphics::{Color, Frame, Window, WindowSettings, Mesh, Shape, Rectangle, Point};
 use coffee::load::Task;
 use coffee::{Game, Timer};
-use crate::input::CustomInput;
+use crate::input::{BasicInput, CustomInput};
 use coffee::input::{Input, keyboard, mouse};
 
 fn main() {
@@ -19,23 +19,23 @@ fn main() {
 
 struct MyGame {
     board: board::Board,
-    input: CustomInput,
+    custom_input: CustomInput,
 }
 
 impl Game for MyGame {
-    type Input = CustomInput;
+    type Input = BasicInput;
     type LoadingScreen = ();
 
 
     fn load(_window: &Window) -> Task<MyGame> {
-        Task::succeed(|| MyGame { board: board::Board::new(), input: Input::new() })
+        Task::succeed(|| MyGame { board: board::Board::new(), custom_input: CustomInput::new() })
     }
 
     fn draw(&mut self, frame: &mut Frame, _timer: &Timer) {
         //self.game_size_and_pos = calculate_board_size_and_position(self.grid_size, [_window.width(), _window.height()]);
         frame.clear(Color::WHITE);
         let mut mesh = Mesh::new();
-        let selected_cell = self.board.get_selected_cell(self.input.mouse_position);
+        let selected_cell = self.board.get_selected_cell(self.custom_input.input.mouse_position);
 
         mesh.fill(
             Shape::Rectangle(Rectangle {
@@ -61,12 +61,12 @@ impl Game for MyGame {
         mesh.draw(&mut frame.as_target());
     }
 
-    fn interact(&mut self, input: &mut CustomInput, _window: &mut Window) {
-        self.input.mouse_position = input.mouse_position;
-        self.input.mouse_buttons_pressed = input.mouse_buttons_pressed.clone();
-        self.input.mouse_wheel = input.mouse_wheel;
-        self.input.keys_pressed = input.keys_pressed.clone();
-        self.input.text_buffer = input.text_buffer.clone();
+    fn interact(&mut self, input: &mut BasicInput, _window: &mut Window) {
+        self.custom_input.input.mouse_position = input.mouse_position;
+        self.custom_input.input.mouse_buttons_pressed = input.mouse_buttons_pressed.clone();
+        self.custom_input.input.mouse_wheel = input.mouse_wheel;
+        self.custom_input.input.keys_pressed = input.keys_pressed.clone();
+        self.custom_input.input.text_buffer = input.text_buffer.clone();
     }
 
     fn update(&mut self, _window: &Window) -> () {
@@ -76,14 +76,14 @@ impl Game for MyGame {
         self.board.place_token(0,0,2);
         self.board.place_token(1,0,2);
 
-        if self.input.mouse_buttons_pressed.contains(&mouse::Button::Left) {
-            let pressed_cell = self.board.get_selected_cell(self.input.mouse_position);
+        if self.custom_input.mouse_click(mouse::Button::Left) {
+            let pressed_cell = self.board.get_selected_cell(self.custom_input.input.mouse_position);
             if pressed_cell.is_some() {
                 self.board.place_token(pressed_cell.unwrap()[0], pressed_cell.unwrap()[1], 1);
             }
         }
-        if self.input.mouse_buttons_pressed.contains(&mouse::Button::Right) {
-            let pressed_cell = self.board.get_selected_cell(self.input.mouse_position);
+        if self.custom_input.mouse_click(mouse::Button::Right) {
+            let pressed_cell = self.board.get_selected_cell(self.custom_input.input.mouse_position);
             if pressed_cell.is_some() {
                 self.board.place_token(pressed_cell.unwrap()[0], pressed_cell.unwrap()[1], 2);
             }
