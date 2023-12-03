@@ -23,7 +23,7 @@ struct MyGame {
 }
 
 impl Game for MyGame {
-    type Input = CustomInput;
+    type Input = BasicInput;
     type LoadingScreen = ();
 
 
@@ -57,7 +57,7 @@ impl Game for MyGame {
                 Color::GREEN,
             );
         }*/
-        self.board.render_grid(&mut mesh);
+        self.board.render_grid(&mut mesh, &self.custom_input.input.mouse_position);
         mesh.draw(&mut frame.as_target());
     }
 
@@ -76,13 +76,13 @@ impl Game for MyGame {
         if self.custom_input.mouse_click(mouse::Button::Left) {
             let pressed_cell = self.board.get_selected_cell(self.custom_input.input.mouse_position);
             if pressed_cell.is_some() {
-                self.board.place_token(pressed_cell.unwrap()[0], pressed_cell.unwrap()[1], 1);
+                self.board.place_token(pressed_cell.unwrap()[0], 1);
             }
         }
         if self.custom_input.mouse_click(mouse::Button::Right) {
             let pressed_cell = self.board.get_selected_cell(self.custom_input.input.mouse_position);
             if pressed_cell.is_some() {
-                self.board.place_token(pressed_cell.unwrap()[0], pressed_cell.unwrap()[1], 2);
+                self.board.place_token(pressed_cell.unwrap()[0], 2);
             }
         }
     }
