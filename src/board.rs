@@ -65,14 +65,20 @@ impl Board {
     }
 
     // Change to render grid, probably chuck it in the board class
-    pub(crate) fn render_grid(&mut self, mesh: &mut Mesh) {
-        let spacing: [f32; 2] = [(self.size[0] / self.grid[0] as f32), (self.size[1] / self.grid[1] as f32)];
+    pub(crate) fn render_grid(&mut self, mesh: &mut Mesh, mouse_position: &Point) {
+        let spacing: [f32; 2] = [self.size[0] / self.grid[0] as f32, self.size[1] / self.grid[1] as f32];
+        let selected_cell = self.get_selected_cell(*mouse_position);
+
         for y in 0..self.grid[1]{
             for x in 0..self.grid[0]{
                 let bit_pos = x + (y * self.grid[0]);
                 let pos_mask = 1 << bit_pos;
 
-                let mut color: Color = Color::WHITE;
+                let mut color = Color::WHITE;
+
+                if selected_cell.is_some() && x == selected_cell.unwrap()[0] {
+                    color = Color::from_rgb(150,150,150);
+                }
 
                 if self.pegs_all & pos_mask != 0{
                     if self.pegs_p1 & pos_mask != 0 {
@@ -84,6 +90,7 @@ impl Board {
                         //println!("Something went very weird, there is a peg here but it doesnt belong to either player.");
                     }
                 }
+
                 mesh.fill(
                     Shape::Circle {
                         center: Point::new((self.pos[0] + self.size[0]) - ((x as f32 * spacing[0]) + (spacing[0] / 2.0)) , (self.pos[1] + self.size[1]) - ((y as f32 * spacing[1]) + (spacing[1] / 2.0))),
@@ -95,26 +102,28 @@ impl Board {
         }
     }
 
-    pub(crate) fn place_token(&mut self, x: i32, y: i32, player: i32) {
-        let binary_pos: i32 = x + (y * self.grid[0]);
-        let pos_mask: i64 = 1 << binary_pos;
+    pub(crate) fn place_token(&mut self, column: i32, player: i32) -> Option<[i32; 2]> {
+        for row in 0 .. self.grid[1] {
+            let binary_pos = column + (row * self.grid[0]);
+            let pos_mask = 1 << binary_pos;
+            if self.pegs_all & pos_mask != 0 {
+                // There is already a peg in that location
+                continue;
+            }
 
-        // Check if there is a peg in that position on the board
-        if self.pegs_all & pos_mask != 0{
-            //println!("Cant place token in pos: {}, {} as there is already a peg there", x, y);
-            return;
+            // Place peg in pegs_all
+            self.pegs_all |= pos_mask;
+
+            if player == 1 {
+                self.pegs_p1 |= pos_mask;
+            }
+            else if player == 2 {
+                self.pegs_p2 |= pos_mask;
+            }
+
+            return Some([column, row]);
         }
-
-        // Place peg in pegs_all
-        self.pegs_all |= pos_mask;
-
-
-        if player == 1 {
-            self.pegs_p1 |= pos_mask;
-        }
-        else if player == 2 {
-            self.pegs_p2 |= pos_mask;
-        }
-
+        // Column is full
+        return None
     }
 }
