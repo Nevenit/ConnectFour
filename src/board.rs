@@ -102,6 +102,10 @@ impl Board {
         }
     }
 
+    pub(crate) fn check_win(&mut self, token_position: [i32; 2], player: i32) {
+
+    }
+
     pub(crate) fn place_token(&mut self, column: i32, player: i32) -> Option<[i32; 2]> {
         for row in 0 .. self.grid[1] {
             let binary_pos = column + (row * self.grid[0]);

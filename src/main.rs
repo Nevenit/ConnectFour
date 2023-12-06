@@ -76,7 +76,10 @@ impl Game for MyGame {
         if self.custom_input.mouse_click(mouse::Button::Left) {
             let pressed_cell = self.board.get_selected_cell(self.custom_input.input.mouse_position);
             if pressed_cell.is_some() {
-                self.board.place_token(pressed_cell.unwrap()[0], 1);
+                let token_position = self.board.place_token(pressed_cell.unwrap()[0], 1);
+                if token_position.is_some() {
+
+                }
             }
         }
         if self.custom_input.mouse_click(mouse::Button::Right) {
