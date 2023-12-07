@@ -8,7 +8,8 @@ pub(crate) struct Board {
     pub(crate) grid_cell_size: f32,
     pegs_all: i64,
     pegs_p1: i64,
-    pegs_p2: i64
+    pegs_p2: i64,
+    win_patterns: [i64; 4]
 }
 
 impl Board {
@@ -22,6 +23,11 @@ impl Board {
             pegs_all: 0,
             pegs_p1: 0,
             pegs_p2: 0,
+            // Vertical, horizontal, bottom-left to top-right, top-left to bottom-right
+            win_patterns: [0b0000000000000000000000000000000000000001000000010000000100000001,
+                            0b0000000000000000000000000000000000000000000000000000000000001111,
+                            0b0000000000000000000000000000000000001000000001000000001000000001,
+                            0b0000000000000000000000000000000000000001000000100000010000001000]
         }
     }
 
@@ -103,6 +109,16 @@ impl Board {
     }
 
     pub(crate) fn check_win(&mut self, token_position: [i32; 2], player: i32) {
+        let mut player_board: i64;
+
+        if player == 1 {
+            player_board = self.pegs_p1.clone();
+        } else if player == 2 {
+            player_board = self.pegs_p2.clone();
+        }
+
+        // Check Vertical
+
 
     }
 
