@@ -1,3 +1,4 @@
+use std::cmp::{max, min};
 use coffee::graphics::{Color, Mesh, Point, Shape, Window};
 
 pub(crate) struct Board {
@@ -6,10 +7,11 @@ pub(crate) struct Board {
     pub(crate) pos: [f32; 2],
     pub(crate) token_size: f32,
     pub(crate) grid_cell_size: f32,
-    pegs_all: i64,
-    pegs_p1: i64,
-    pegs_p2: i64,
-    win_patterns: [i64; 4]
+    pegs_all: u64,
+    pegs_p1: u64,
+    pegs_p2: u64,
+    win_patterns: [u64; 4],
+    win_pattern_bounds: [u64; 3]
 }
 
 impl Board {
@@ -24,10 +26,16 @@ impl Board {
             pegs_p1: 0,
             pegs_p2: 0,
             // Vertical, horizontal, bottom-left to top-right, top-left to bottom-right
+
             win_patterns: [0b0000000000000000000000000000000000000001000000010000000100000001,
                             0b0000000000000000000000000000000000000000000000000000000000001111,
                             0b0000000000000000000000000000000000001000000001000000001000000001,
-                            0b0000000000000000000000000000000000000001000000100000010000001000]
+                            0b0000000000000000000000000000000000000001000000100000010000001000],
+            // Vertical, bottom-left to top-right, top-left to bottom-right
+            win_pattern_bounds: [0b0000000000000000000000000000000000000000111111111111111111111111,
+                                 0b1110000011000000100000000000000000000000000000010000001100000111,
+                                 0b0000011100000011000000010000000000000000100000001100000011100000
+            ]
         }
     }
 
@@ -108,18 +116,51 @@ impl Board {
         }
     }
 
-    pub(crate) fn check_win(&mut self, token_position: [i32; 2], player: i32) {
-        let mut player_board: i64;
+    pub(crate) fn check_win(&mut self, token_position: [i32; 2], player: i32) -> bool {
+        let mut player_board: u64;
+        let token_mask = 1 << token_position[0] + (token_position[1] * self.grid[0]);
 
         if player == 1 {
             player_board = self.pegs_p1.clone();
         } else if player == 2 {
             player_board = self.pegs_p2.clone();
+        } else {
+            println!("Error? Wrong player? What the heck is this:{}", player);
+            player_board = self.pegs_p2.clone();
         }
 
         // Check Vertical
+        // Were only checking new tokens which must be the highest in its row, and if that row is smaller than four its impossible for it to be a win.
+        if token_mask & self.win_pattern_bounds[0] == 0 {
+            for i in 0..min(4, self.grid[1] - token_position[1]) {
+                let vertical_win_mask = self.win_patterns[0] << token_position[0] + ((token_position[1] - 3 + i) * self.grid[0]);
+                if player_board & vertical_win_mask == vertical_win_mask {
+                    println!("Win detected! Player: {}", player);
+                    return true;
+                }
+            }
+        }
 
+        // Check Horizontal
+        for i in 0..min(4, min(token_position[0], self.grid[0] - token_position[0]) + 1) {
+            let horizontal_win_mask = self.win_patterns[1] << max(0, token_position[0] - 3) + (token_position[1] * self.grid[0]) + i;
+            if player_board & horizontal_win_mask == horizontal_win_mask {
+                println!("Win detected! Player: {}", player);
+                return true;
+            }
+        }
 
+        // Check bottom-left to top-right diagonal
+        // if token_mask & self.win_pattern_bounds[1] = 0 {
+        //
+        // }
+
+        // Check top-left to bottom-right diagonal
+        // if token_mask & self.win_pattern_bounds[2] = 0 {
+        //
+        // }
+
+        return false;
     }
 
     pub(crate) fn place_token(&mut self, column: i32, player: i32) -> Option<[i32; 2]> {

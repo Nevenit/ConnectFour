@@ -78,14 +78,17 @@ impl Game for MyGame {
             if pressed_cell.is_some() {
                 let token_position = self.board.place_token(pressed_cell.unwrap()[0], 1);
                 if token_position.is_some() {
-
+                    self.board.check_win(token_position.unwrap(), 1);
                 }
             }
         }
         if self.custom_input.mouse_click(mouse::Button::Right) {
             let pressed_cell = self.board.get_selected_cell(self.custom_input.input.mouse_position);
             if pressed_cell.is_some() {
-                self.board.place_token(pressed_cell.unwrap()[0], 2);
+                let token_position = self.board.place_token(pressed_cell.unwrap()[0], 2);
+                if token_position.is_some() {
+                    self.board.check_win(token_position.unwrap(), 2);
+                }
             }
         }
     }
