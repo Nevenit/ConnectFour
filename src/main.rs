@@ -1,6 +1,7 @@
 mod board;
 mod input;
 
+use std::fmt::Debug;
 use coffee::graphics::{Color, Frame, Window, WindowSettings, Mesh, Shape, Rectangle, Point};
 use coffee::load::Task;
 use coffee::{Game, Timer};
@@ -58,6 +59,7 @@ impl Game for MyGame {
             );
         }*/
         self.board.render_grid(&mut mesh, &self.custom_input.input.mouse_position);
+        //self.board.render_win_overlay();
         mesh.draw(&mut frame.as_target());
     }
 
@@ -91,5 +93,17 @@ impl Game for MyGame {
                 }
             }
         }
+        if self.custom_input.input.keys_pressed.contains(&keyboard::KeyCode::Space) {
+            self.board.reset();
+        }
+        // if self.custom_input.input.keys_pressed.len() > 0 {
+        //     println!();
+        //     print!("Keys pressed: ");
+        //     for key in &self.custom_input.input.keys_pressed {
+        //         print!("{:?} ", key);
+        //     }
+        // }
+
+        //if self.custom_input.input.keys_pressed.contains()
     }
 }
