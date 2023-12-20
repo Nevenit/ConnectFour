@@ -1,3 +1,4 @@
+use std::arch::x86_64::_mm256_stream_pd;
 use std::cmp::{max, min};
 use coffee::graphics::{Color, Mesh, Point, Shape, Window};
 
@@ -163,45 +164,42 @@ impl Board {
             println!("Error? Wrong player? What the heck is this:{}", player);
             player_board = self.pegs_p2.clone();
         }
-        let method = 0;
+        //let method = 0;
 
 
-        if method == 0 {
+        //if method == 0 {
             let mut win_mask: u64;
             let mut move_count: i32;
-            let mut offset: i32;
+            let mut won = false;
 
             let start_offset: [i32; 2] = [min(3, token_position[0]), min(3, token_position[1])];
             let min_start_offset: i32 = min(start_offset[0], start_offset[1]);
             let end_offset: [i32; 2] = [min(3, self.grid[0] - 1 - token_position[0]), min(3, self.grid[1] - 1 - token_position[1])];
             let min_end_offset: i32 = min(end_offset[0], end_offset[1]);
 
-
             // Check Vertical
             // Were only checking new tokens which must be the highest in its row, and if that row is smaller than four its impossible for it to be a win.
             if token_mask & self.win_pattern_bounds[0] == 0 {
-                move_count = end_offset[1];
-                for i in 0..=move_count {
-                    win_mask = self.win_patterns[0] << token_position[0] + ((token_position[1] - start_offset[1] + i) * self.grid[0]);
-                    // if player_board & win_mask == win_mask {
-                    //     println!("Vertical win detected! Player: {}", player);
-                    //     self.win_overlay = win_mask;
-                    //     return true;
-                    // }
+                win_mask = self.win_patterns[0] << token_position[0] + ((token_position[1] - start_offset[1]) * self.grid[0]);
+                if player_board & win_mask == win_mask {
+                    println!("Vertical win detected! Player: {}", player);
+                    self.win_overlay = self.win_overlay | win_mask;
+                    won = true;
                 }
             }
 
             // Check Horizontal
+            // Figure out how many positions we have to check
             move_count = 1 + start_offset[0] + end_offset[0] - 4;
-
             for i in 0..=move_count{
+                // Offset the win mask so it matches the position we want to check
                 win_mask = self.win_patterns[1] << token_position[0] - start_offset[0] + (token_position[1] * self.grid[0]) + i;
-                // if player_board & win_mask == win_mask {
-                //     println!("Win detected! Player: {}", player);
-                //     return true;
-                // }
+                if player_board & win_mask == win_mask {
+                    println!("Horizontal detected! Player: {}", player);
+                    self.win_overlay = self.win_overlay | win_mask;
+                    won = true;
+                }
             }
-
 
             // Check top-left to bottom-right diagonal
             if token_mask & self.win_pattern_bounds[1] == 0 {
@@ -209,94 +207,76 @@ impl Board {
                 for i in 0..=move_count {
                     win_mask = self.win_patterns[2] << token_position[0] - min_start_offset + i + ((token_position[1] - min_start_offset + i) * self.grid[0]);
                     if player_board & win_mask == win_mask {
-                        println!("Win detected! Player: {}", player);
-                        self.debug_overlay = 0;
-                        self.win_overlay = win_mask;
-                        return true;
+                        println!("Left diagonal win detected! Player: {}", player);
+                        self.win_overlay = self.win_overlay | win_mask;
+                        won = true;
                     }
                 }
 
             }
+
             // Check bottom-left to top-right diagonal
             if token_mask & self.win_pattern_bounds[2] == 0 {
-                let min_bottom_left_offset = min(end_offset[0], start_offset[1]);
-                let min_top_right_offset = min(end_offset[1], start_offset[0]);
-                move_count = 1 + min_bottom_left_offset + min_top_right_offset - 4;
-                println!("start: {}\nEnd:{}\nCount:{}",min_bottom_left_offset, min_top_right_offset, move_count);
+                // We have to calculate new start and end offsets because of the win pattern having to be chacked in a different direction
+                let offset_start = min(3, min(token_position[1], self.grid[0] - 1 - token_position[0]));
+                let offset_end = min(3, min(token_position[0], self.grid[1] - 1 - token_position[1]));
+                move_count = 1 + offset_start + offset_end - 4;
                 for i in 0..=move_count {
-
-                    win_mask = self.win_patterns[3] << (max(0, token_position[0] - 3) + min_bottom_left_offset - i) + ((max(0, token_position[1] - 3) + min_bottom_left_offset - i) * self.grid[0]);
-                    println!("Check {}:", i);
-                    self.debug_print_board(win_mask, token_position);
-                    self.debug_overlay = self.debug_overlay | win_mask;
+                    win_mask = self.win_patterns[3] << (token_position[0] + offset_start - i - 3) + ((token_position[1] - offset_start + i) * self.grid[0]);
                     if player_board & win_mask == win_mask {
-                        println!("Win detected! Player: {}", player);
-                        self.debug_overlay = 0;
-                        self.win_overlay = win_mask;
-                        return true;
-                    }
-                }
-                println!("----------------------------------");
-            }
-            // Check bottom-left to top-right diagonal
-            // if token_mask & self.win_pattern_bounds[2] == 0 {
-            //     for i in 0..move_count {
-            //         win_mask = self.win_patterns[3] << offset - i + max(0, token_position[1] - 3 + i) * self.grid[0];
-            //         //self.win_overlay = self.win_overlay | win_mask;
-            //         if player_board & win_mask == win_mask {
-            //             println!("wat");
-            //             self.win_overlay = win_mask;
-            //             return true;
-            //         }
-            //     }
-            // }
-        }
-        else if method == 1 {
-            let mut win_mask;
-            for y in 0..self.grid[1] - 3 {
-                for x in 0..self.grid[0] {
-                    win_mask = self.win_patterns[0] << x + (y * self.grid[0]);
-                    if player_board & win_mask == win_mask {
-                        println!("Vertical win detected! Player: {}", player);
-                        self.win_overlay = win_mask;
-                        return true;
+                        println!("Right diagonal win detected! Player: {}", player);
+                        self.win_overlay = self.win_overlay | win_mask;
+                        won = true;
                     }
                 }
             }
-            for y in 0..self.grid[1] {
-                for x in 0..self.grid[0] - 3 {
-                    win_mask = self.win_patterns[1] << x + (y * self.grid[0]);
-                    if player_board & win_mask == win_mask {
-                        println!("Vertical win detected! Player: {}", player);
-                        self.win_overlay = win_mask;
-                        return true;
-                    }
-                }
-            }
-            for y in 0..self.grid[1] {
-                for x in 0..self.grid[0] - 3 {
-                    win_mask = self.win_patterns[2] << x + (y * self.grid[0]);
-                    if player_board & win_mask == win_mask {
-                        println!("Vertical win detected! Player: {}", player);
-                        self.win_overlay = win_mask;
-                        return true;
-                    }
-                }
-            }
-            for y in 0..self.grid[1] {
-                for x in 0..self.grid[0] - 3 {
-                    win_mask = self.win_patterns[3] << x + (y * self.grid[0]);
-                    if player_board & win_mask == win_mask {
-                        println!("Vertical win detected! Player: {}", player);
-                        self.win_overlay = win_mask;
-                        return true;
-                    }
-                }
-            }
-        }
+        //}
+        // else if method == 1 {
+        //     let mut win_mask;
+        //     for y in 0..self.grid[1] - 3 {
+        //         for x in 0..self.grid[0] {
+        //             win_mask = self.win_patterns[0] << x + (y * self.grid[0]);
+        //             if player_board & win_mask == win_mask {
+        //                 println!("Vertical win detected! Player: {}", player);
+        //                 self.win_overlay = win_mask;
+        //                 return true;
+        //             }
+        //         }
+        //     }
+        //     for y in 0..self.grid[1] {
+        //         for x in 0..self.grid[0] - 3 {
+        //             win_mask = self.win_patterns[1] << x + (y * self.grid[0]);
+        //             if player_board & win_mask == win_mask {
+        //                 println!("Vertical win detected! Player: {}", player);
+        //                 self.win_overlay = win_mask;
+        //                 return true;
+        //             }
+        //         }
+        //     }
+        //     for y in 0..self.grid[1] {
+        //         for x in 0..self.grid[0] - 3 {
+        //             win_mask = self.win_patterns[2] << x + (y * self.grid[0]);
+        //             if player_board & win_mask == win_mask {
+        //                 println!("Vertical win detected! Player: {}", player);
+        //                 self.win_overlay = win_mask;
+        //                 return true;
+        //             }
+        //         }
+        //     }
+        //     for y in 0..self.grid[1] {
+        //         for x in 0..self.grid[0] - 3 {
+        //             win_mask = self.win_patterns[3] << x + (y * self.grid[0]);
+        //             if player_board & win_mask == win_mask {
+        //                 println!("Vertical win detected! Player: {}", player);
+        //                 self.win_overlay = win_mask;
+        //                 return true;
+        //             }
+        //         }
+        //     }
+        // }
 
 
-        return false;
+        return won;
     }
 
     pub(crate) fn place_token(&mut self, column: i32, player: i32) -> Option<[i32; 2]> {
