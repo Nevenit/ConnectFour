@@ -24,22 +24,22 @@ This repository contains a simple yet efficient Connect Four game designed to ru
 ```bash
 git clone https://github.com/<Your Username>/Connect-Four.git
 ```
-Build and run:
+### Build and run:
 
 cd Connect-Four
 cargo build
 cargo run
 
-Interact with the game:
+### Interact with the game:
 
 Left click to place your token. Right click for the bot to place its token. Press space for a reset.
-Contribution
+## Contribution
 
 Contributions are always welcome! Feel free to create an issue about a bug or a feature request or open a pull request. Please remember to test your code and validate its functionality before creating a pull request.
-Future Works
+## Future Works
 
 The primary aim of the project is to expand the bot's functionality to be fast, efficient and unbeatable.
-License
+## License
 
 This project is open-source, and use is subject to the conditions of the provided license.
 
