@@ -23,7 +23,7 @@ This repository contains a simple yet efficient Connect Four game designed to ru
 ### Clone the repository:
 ```bash
 git clone https://github.com/<Your Username>/Connect-Four.git
-
+```
 Build and run:
 
 cd Connect-Four
