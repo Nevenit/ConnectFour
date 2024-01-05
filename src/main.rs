@@ -1,5 +1,8 @@
+#![feature(test)]
+
 mod board;
 mod input;
+mod tests;
 
 use std::fmt::Debug;
 use coffee::graphics::{Color, Frame, Window, WindowSettings, Mesh, Shape, Rectangle, Point};
