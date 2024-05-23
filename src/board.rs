@@ -2,16 +2,17 @@ use std::arch::x86_64::_mm256_stream_pd;
 use std::cmp::{max, min};
 use coffee::graphics::{Color, Mesh, Point, Shape, Window};
 
-
+#[derive(Clone)]
 pub(crate) struct Board {
     pub(crate) grid: [i32; 2],
     pub(crate) size: [f32; 2],
     pub(crate) pos: [f32; 2],
     pub(crate) token_size: f32,
     pub(crate) grid_cell_size: f32,
+    pub(crate) full_board: u64,
     win_overlay: u64,
     debug_overlay: u64,
-    pegs_all: u64,
+    pub(crate) pegs_all: u64,
     pegs_p1: u64,
     pegs_p2: u64,
     win_patterns: [u64; 4],
@@ -19,13 +20,14 @@ pub(crate) struct Board {
 }
 
 impl Board {
-    pub(crate) fn new() -> Board {
+    pub(crate) fn new(size: [i32; 2]) -> Board {
         Board {
-            grid: [7, 6],
+            grid: size,
             size: [0.0, 0.0],
             pos: [0.0, 0.0],
             token_size: 0.0,
             grid_cell_size: 0.0,
+            full_board: u64::pow(2, (size[0] * size[1]) as u32) - 1,
             win_overlay: 0,
             debug_overlay: 0,
             pegs_all: 0,
@@ -131,7 +133,7 @@ impl Board {
         }
     }
 
-    fn debug_print_board(&self, board: u64, point_pos: [i32; 2]) {
+    pub(crate) fn debug_print_board(&self, point_pos: [i32; 2]) {
         for y in (0..self.grid[1]).rev() {
             for x in (0..self.grid[0]).rev() {
                 if point_pos == [x, y] {
@@ -139,17 +141,21 @@ impl Board {
                 }
                 else {
                     let index = x + y * self.grid[0];
-                    if board & (1 << index) != 0 {
-                        print!("X ");
+                    if self.pegs_all & (1 << index) != 0 {
+                        if self.pegs_p1 & (1 << index) != 0 {
+                            print!("X ");
+                        } else if self.pegs_p2 & (1 << index) != 0 {
+                            print!("O ");
+                        }
+
                     } else {
-                        print!("O ");
+                        print!("_ ");
                     }
                 }
 
             }
             println!();
         }
-        println!();
     }
 
     pub(crate) fn check_win(&mut self, token_position: [i32; 2], player: i32) -> bool {
@@ -280,28 +286,37 @@ impl Board {
     }
 
     pub(crate) fn place_token(&mut self, column: i32, player: i32) -> Option<[i32; 2]> {
-        for row in 0 .. self.grid[1] {
+        // Check if the column number is within the valid range
+        if column < 0 || column >= self.grid[0] {
+            // Column number is out of bounds
+            return None;
+        }
+
+        for row in 0..self.grid[1] {
             let binary_pos = column + (row * self.grid[0]);
             let pos_mask = 1 << binary_pos;
+
+            // Check if there is already a peg in that location
             if self.pegs_all & pos_mask != 0 {
-                // There is already a peg in that location
-                continue;
+                continue; // Skip to the next row in the same column
             }
 
             // Place peg in pegs_all
             self.pegs_all |= pos_mask;
 
+            // Assign the peg to the corresponding player
             if player == 1 {
                 self.pegs_p1 |= pos_mask;
-            }
-            else if player == 2 {
+            } else if player == 2 {
                 self.pegs_p2 |= pos_mask;
             }
 
+            // Return the position where the token was placed
             return Some([column, row]);
         }
-        // Column is full
-        return None
+
+        // If no position was found in this column because it's full, return None
+        return None;
     }
 
     pub(crate) fn reset(&mut self) {

@@ -5,11 +5,13 @@ mod input;
 mod tests;
 
 use std::fmt::Debug;
+use std::{thread, time};
 use coffee::graphics::{Color, Frame, Window, WindowSettings, Mesh, Shape, Rectangle, Point};
 use coffee::load::Task;
 use coffee::{Game, Timer};
 use crate::input::{BasicInput, CustomInput};
 use coffee::input::{Input, keyboard, mouse};
+use crate::board::Board;
 
 fn main() {
     let _ = MyGame::run(WindowSettings {
@@ -30,9 +32,8 @@ impl Game for MyGame {
     type Input = BasicInput;
     type LoadingScreen = ();
 
-
     fn load(_window: &Window) -> Task<MyGame> {
-        Task::succeed(|| MyGame { board: board::Board::new(), custom_input: CustomInput::new() })
+        Task::succeed(|| MyGame { board: board::Board::new([7,6]), custom_input: CustomInput::new()})
     }
 
     fn draw(&mut self, frame: &mut Frame, _timer: &Timer) {
@@ -78,6 +79,12 @@ impl Game for MyGame {
     fn update(&mut self, _window: &Window) -> () {
         self.board.update_board_size(_window);
 
+        let mut counter: i64 = 0;
+        board_combinations_recursive(Board::new(self.board.grid), &mut counter);
+        println!("Done! Cout: {}", counter);
+        let mut line = String::new();
+        let b1 = std::io::stdin().read_line(&mut line).unwrap();
+
         if self.custom_input.mouse_click(mouse::Button::Left) {
             let pressed_cell = self.board.get_selected_cell(self.custom_input.input.mouse_position);
             if pressed_cell.is_some() {
@@ -108,5 +115,35 @@ impl Game for MyGame {
         // }
 
         //if self.custom_input.input.keys_pressed.contains()
+    }
+}
+
+fn board_combinations_recursive(board: Board, counter: &mut i64) {
+    let player: i32 = (*counter as i32 % 2) + 1;
+    //println!("C:{} P:{}", counter, player);
+
+    for column in 0..board.grid[0] {
+        let mut board_copy = board.clone();
+        //print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+
+        let token_position = board_copy.place_token(column, player);
+
+        //board_copy.debug_print_board([column,-1]);
+        //println!("Count: {}", counter);
+
+        if token_position.is_some() {
+            //println!("all: {0}, full: {1}", board_copy.pegs_all, board_copy.full_board);
+            if board_copy.pegs_all == board_copy.full_board {
+                //println!("Board full");
+                continue;
+            }
+
+            *counter += 1;
+
+            board_combinations_recursive(board_copy, counter);
+        }
+        else {
+            continue;
+        }
     }
 }

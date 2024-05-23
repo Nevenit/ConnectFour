@@ -7,3 +7,10 @@ edition = "2021"
 
 [dependencies]
 coffee = { version = "0.4", features = ["vulkan"] }
+
+
+[profile.dev]
+opt-level = 1
+
+[build]
+rustflags = ["-Z", "threads=8"]
