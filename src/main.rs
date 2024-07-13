@@ -4,13 +4,11 @@ mod board;
 mod input;
 mod tests;
 
-use std::fmt::Debug;
-use std::{thread, time};
-use coffee::graphics::{Color, Frame, Window, WindowSettings, Mesh, Shape, Rectangle, Point};
+use coffee::graphics::{Color, Frame, Window, WindowSettings, Mesh, Shape, Rectangle};
 use coffee::load::Task;
 use coffee::{Game, Timer};
 use crate::input::{BasicInput, CustomInput};
-use coffee::input::{Input, keyboard, mouse};
+use coffee::input::{keyboard, mouse};
 use crate::board::Board;
 
 fn main() {
@@ -83,7 +81,7 @@ impl Game for MyGame {
         board_combinations_recursive(Board::new(self.board.grid), &mut counter);
         println!("Done! Cout: {}", counter);
         let mut line = String::new();
-        let b1 = std::io::stdin().read_line(&mut line).unwrap();
+        std::io::stdin().read_line(&mut line).unwrap();
 
         if self.custom_input.mouse_click(mouse::Button::Left) {
             let pressed_cell = self.board.get_selected_cell(self.custom_input.input.mouse_position);

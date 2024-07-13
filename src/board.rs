@@ -1,5 +1,4 @@
-use std::arch::x86_64::_mm256_stream_pd;
-use std::cmp::{max, min};
+use std::cmp::{min};
 use coffee::graphics::{Color, Mesh, Point, Shape, Window};
 
 #[derive(Clone)]
@@ -159,7 +158,7 @@ impl Board {
     }
 
     pub(crate) fn check_win(&mut self, token_position: [i32; 2], player: i32) -> bool {
-        let mut player_board: u64;
+        let player_board: u64;
         let token_mask = 1 << token_position[0] + (token_position[1] * self.grid[0]);
 
         if player == 1 {

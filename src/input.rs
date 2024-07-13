@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::hash::Hash;
 use coffee::graphics::Point;
 use coffee::input;
 use coffee::input::{keyboard, mouse};
