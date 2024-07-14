@@ -1,12 +1,16 @@
-#![feature(test)]
-
 #[cfg(test)]
 mod tests {
+
     extern crate test;
     use test::Bencher;
-    use std::time::Instant;
     use crate::board::Board;
-    use crate::board_combinations_recursive;
+    use crate::{board_combinations_recursive};
+
+    #[bench]
+    fn bench_small_board(b: &mut Bencher) {
+        let mut counter: i64 = 0;
+        b.iter(|| board_combinations_recursive(Board::new([4,3]), &mut counter));
+    }
 
     #[test]
     fn check_win_test() {
@@ -15,10 +19,12 @@ mod tests {
     }
 
     #[bench]
-    fn bench_small_board(b: &mut Bencher) {
-        let mut counter:i64 = 0;
+    fn bit_bench(b: &mut Bencher) {
         b.iter(|| {
-            board_combinations_recursive(Board::new([4,3]), &mut counter);
+            let mut x: u64 = 0;
+            for i in 0..u64::MAX {
+                x += 1;
+            }
         });
     }
 }
