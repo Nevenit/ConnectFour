@@ -79,7 +79,7 @@ impl Game for MyGame {
 
         let mut counter: i64 = 0;
         board_combinations_recursive(Board::new(self.board.grid), &mut counter);
-        println!("Done! Cout: {}", counter);
+        println!("Done! Count: {}", counter);
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
 
